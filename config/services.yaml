@@ -28,3 +28,12 @@ services:
     App\Controller\:
         resource: '../src/Controller'
         tags: ['controller.service_arguments']
+
+  
+    App\Controller\PaymentRedirectController:
+        tags: [ 'controller.service_arguments'] 
+        public: true
+        autowire: true 
+        autoconfigure: true
+
+ 

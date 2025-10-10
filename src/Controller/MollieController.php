@@ -39,8 +39,9 @@ final class MollieController extends AbstractController
     public function preparePayment()
     {      
         
-        // La propriété "paymeny_success" de redirectUrl permet d'éxécuter le code fonction
-        // nommée payment_success
+        /* La propriété "paymeny_success" de redirectUrl permet d'éxécuter le code de la fonction
+        nommée payment_success.  
+        */  
         $payment = $this->mollie->payments->create([
             "amount" => [
                 "currency" => "EUR",
@@ -76,6 +77,8 @@ final class MollieController extends AbstractController
 
     }
 
+
+
     
     #[Route('/mollie', name: 'app_mollie')]
     public function index(): Response
@@ -89,3 +92,4 @@ final class MollieController extends AbstractController
 
   
 
+ 
