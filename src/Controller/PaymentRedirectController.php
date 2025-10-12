@@ -5,12 +5,18 @@ namespace App\Controller;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;  
 use Symfony\Component\HttpFoundation\RedirectResponse;      
-use Symfony\Component\HttpFoundation\Response;
+use Sylius\Component\Order\Modifier\OrderModifierInterface;
+use Sylius\Component\Order\Repository\OrderRepositoryInterface;
+use Symfony\Component\HttpFoundation\Session\SessionInterface;
+use Sylius\Component\Channel\Context\ChannelContextInterface; 
+use Sylius\Component\Order\Context\CartContextInterface;
+use Symfony\Component\HttpFoundation\Response;  
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\HttpFoundation\Request;     
-use Mollie\Api\MollieApiClient;   
-   
-   
+use Sylius\Component\Channel\Model\ChannelInterface;  
+
+use Mollie\Api\MollieApiClient;
+
 final class PaymentRedirectController extends AbstractController
 {
 
@@ -40,9 +46,13 @@ final class PaymentRedirectController extends AbstractController
                         
     */      
      #[Route('/{_locale}/checkout/address', name: 'sylius_shop_checkout_address', methods: ['GET', 'PUT'])]
-    public function redirectToMollie(): RedirectResponse
-    {       
-                      
+    public function redirectToMollie(CartContextInterface $cartContext,
+    ChannelContextInterface $channelContext,
+    SessionInterface $session
+        ): RedirectResponse
+    {         
+                       
+
         /* Nous devrons faire en sorte que les données de la variable $payment 
            correspondent à celle de la commande du client. */
          $payment = $this->mollie->payments->create([
@@ -55,10 +65,33 @@ final class PaymentRedirectController extends AbstractController
           //  "webhookUrl" => $this->generateUrl('mollie_webhook', [], UrlGeneratorInterface::ABSOLUTE_URL),
                  
         ]);   
-   
-          
-        // Peut-on récupérer les données de la requête pour les transmettre au formulaire ?
-         
+            
+        // On aimerait vider le panier uniquement pour l'interface........................
+            
+             
+        // dd('Quelle est la méthode reset de cette variable ?===> ', $cartContext->items[2]["data"]); 
+        // dd('Quelle est la méthode reset de cette variable ?===> ', $cartContext);   
+           
+                
+        // On “reset” la session de panier pour cet utilisateur  
+        // Cela va supprimer la clé de session du panier, donc l’interface considérera le panier vide
+        if (method_exists($cartContext, 'reset')) {
+
+          //  $cartContext->clearItems();  
+              
+        } else {
+            // alternative si reset n’est pas sur l’interface : supprimer manuellement la clé de session
+            // on doit connaître la clé de session que le contexte utilise
+            // exemple (à adapter selon implémentation) :
+  
+            // Récupérer le canal courant
+            $channel = $channelContext->getChannel(); // renvoie un objet ChannelInterface
+            $sessionKey = sprintf('_cart_key/%s', $channel->getCode());
+            $session->remove($sessionKey);
+            
+        }
+     
+        
         // Redirige l'utilisateur vers Mollie. 
         return new RedirectResponse($payment->getCheckoutUrl(), 303);
            
@@ -98,9 +131,11 @@ final class PaymentRedirectController extends AbstractController
     #[Route('/payment-success', name: 'payment_success')]
     public function paymentSuccess(Request $request)
     {
-         
-       // dd("request ===>", $request);  
-       // dd("Payment successful!");            
+                   
+       // dd("request ===>", $request);     
+       // dd("Payment successful!");           
+       /* Nous devons sauvegarder la commande puis vider le panier du client
+        avant la redirection ci-dessous.  */
        return $this->redirectToRoute('sylius_shop_account_dashboard');
   
         // Normally we have to go back the homepage of the sylius_shop_user  
