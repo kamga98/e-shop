@@ -29,17 +29,28 @@ sylius_paypal:
         _locale: ^[A-Za-z]{2,4}(_([A-Za-z]{4}|[0-9]{3}))?(_([A-Za-z]{2}|[0-9]{3}))?$
    
 
+# CAS DE L'API MOLLIE 
 # Après avoir ajouté notre contrôleur PaymentRedirectController dans le container de service
 # nous avons redéfini la route "sylius_shop_checkout_address" pour que le contrôleur qui soit 
 # appelé soit le nôtre et non celui de Sylius (le contrôleur interne). 
 # Ci-dessous, nous avons mentionné les méthodes de notre contrôleur (GET et PUT). 
      
-sylius_shop_checkout_address:    
-    path: /{_locale}/checkout/address     
-    controller: App\Controller\PaymentRedirectController::redirectToMollie
+# sylius_shop_checkout_address:    
+#     path: /{_locale}/checkout/address     
+#     controller: App\Controller\PaymentRedirectController::redirectToMollie
+#     methods: [GET, PUT]  
+#     requirements:
+#         _locale: en_US|fr_FR
+  
+      
+# CAS DE PAYPAL 
+sylius_shop_checkout_address:
+    path: /{_locale}/checkout/address
+    controller: App\Controller\PaypalController::checkout
     methods: [GET, PUT]  
     requirements:
         _locale: en_US|fr_FR
-  
+
+    
          
     

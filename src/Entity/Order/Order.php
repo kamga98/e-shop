@@ -8,7 +8,7 @@ use Doctrine\ORM\Mapping as ORM;
 use Sylius\Component\Core\Model\Order as BaseOrder;
 use Sylius\MolliePlugin\Entity\AbandonedEmailOrderTrait;
 use Sylius\MolliePlugin\Entity\MolliePaymentIdOrderTrait;
-use Sylius\MolliePlugin\Entity\OrderInterface;
+use Sylius\Component\Core\Model\OrderInterface;  
 use Sylius\MolliePlugin\Entity\QRCodeOrderTrait;
 use Sylius\MolliePlugin\Entity\RecurringOrderTrait;
 

@@ -27,6 +27,8 @@ final class PaymentRedirectController extends AbstractController
     {  
        $this->mollie = new MollieApiClient();
  
+       // Normallement, nous ne devons pas écrire la clé "test_rmhBV2hB2edSbfnuE59HNubSTjVMEE" en dur
+       // Nous devons lire celle du fichier .env.  
        $this->mollie->setApiKey("test_rmhBV2hB2edSbfnuE59HNubSTjVMEE");
        // $this->mollie->setApiKey("live_8BKesqNy2rfyGSD5RqVR2W44yqkTtz");
            
@@ -50,46 +52,61 @@ final class PaymentRedirectController extends AbstractController
     ChannelContextInterface $channelContext,
     SessionInterface $session
         ): RedirectResponse
-    {         
-                       
+    {           
+            
+        // Récupération des données du panier  
+
+          // 1. Récupérer la commande (le panier en cours)
+        /** @var OrderInterface $order */
+        $order = $cartContext->getCart();
+  
+        // 2. Récupérer le montant total de la commande en centimes
+        $orderTotal = $order->getTotal(); // Ex : 1234 = 12.34 EUR
+
+        // 3. Formater le montant pour Mollie (en string, 2 décimales, point comme séparateur)
+        $amountValue = number_format($orderTotal / 100, 2, '.', '');
+
+        // 4. Deviner la devise (optionnel : selon le canal)
+        $currencyCode = $order->getCurrencyCode(); // Ex : "EUR"
+
+       // dd('Amount value ==>',  $amountValue );    
 
         /* Nous devrons faire en sorte que les données de la variable $payment 
            correspondent à celle de la commande du client. */
+
          $payment = $this->mollie->payments->create([
             "amount" => [
-                "currency" => "EUR",
-                "value" => "10.00" 
+                "currency" => $currencyCode,  
+                "value" => $amountValue   
             ],
             "description" => "Test payment with Mollie",
             "redirectUrl" => $this->generateUrl('payment_success', [], UrlGeneratorInterface::ABSOLUTE_URL),
           //  "webhookUrl" => $this->generateUrl('mollie_webhook', [], UrlGeneratorInterface::ABSOLUTE_URL),
                  
         ]);   
-            
+              
+        
+
         // On aimerait vider le panier uniquement pour l'interface........................
             
-             
-        // dd('Quelle est la méthode reset de cette variable ?===> ', $cartContext->items[2]["data"]); 
-        // dd('Quelle est la méthode reset de cette variable ?===> ', $cartContext);   
-           
-                
+        // dd('Quelle est la méthode reset de cette variable ?===> ', $cartContext->items[2]["data"]);          
         // On “reset” la session de panier pour cet utilisateur  
         // Cela va supprimer la clé de session du panier, donc l’interface considérera le panier vide
-        if (method_exists($cartContext, 'reset')) {
+        // if (method_exists($cartContext, 'reset')) {
 
-          //  $cartContext->clearItems();  
+        //   //  $cartContext->reset();   
               
-        } else {
-            // alternative si reset n’est pas sur l’interface : supprimer manuellement la clé de session
-            // on doit connaître la clé de session que le contexte utilise
-            // exemple (à adapter selon implémentation) :
+        // } else {
+        //     // alternative si reset n’est pas sur l’interface : supprimer manuellement la clé de session
+        //     // on doit connaître la clé de session que le contexte utilise
+        //     // exemple (à adapter selon implémentation) :
   
-            // Récupérer le canal courant
-            $channel = $channelContext->getChannel(); // renvoie un objet ChannelInterface
-            $sessionKey = sprintf('_cart_key/%s', $channel->getCode());
-            $session->remove($sessionKey);
+        //     // Récupérer le canal courant
+            // $channel = $channelContext->getChannel(); // renvoie un objet ChannelInterface
+            // $sessionKey = sprintf('_cart_key/%s', $channel->getCode());
+            // $session->remove($sessionKey);
             
-        }
+        // }    
      
         
         // Redirige l'utilisateur vers Mollie. 
