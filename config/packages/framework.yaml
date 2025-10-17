@@ -5,11 +5,15 @@ framework:
         enabled: true
         legacy_error_messages: false
     csrf_protection: true
-    session:
+    trusted_proxies: '127.0.0.1'
+    session:       
         handler_id: ~
+        cookie_secure: auto
+        cookie_samesite: lax
     serializer:
         mapping:
             paths: [ '%kernel.project_dir%/config/serialization' ]
+        
 
 when@dev:
     framework:
@@ -22,3 +26,11 @@ when@test: &framework_test
             storage_factory_id: session.storage.factory.mock_file
 
 when@test_cached: *framework_test
+
+# Pour la variable framework j'ai rajouté : 
+# trusted_proxies: '127.0.0.1'
+# Pour la variable session j'ai rajouté : 
+#  cookie_secure: auto
+# cookie_samesite: lax
+
+  

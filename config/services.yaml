@@ -35,10 +35,37 @@ services:
         public: true
         autowire: true 
         autoconfigure: true
+  
+            
+    # App\EventListener\CartAddListener:
+    #     tags:
+    #         - { name: kernel.event_listener, event: kernel.controller, method: onKernelController }
+
+    # App\EventListener\CartUpdateAfterAddListener:
+    #     tags:
+    #         - { name: kernel.event_listener, event: kernel.response, method: onKernelResponse }
+
+  
+    # App\EventListener\CorsListener:
+    #     tags:
+    #         - { name: kernel.event_listener, event: kernel.response, method: onKernelResponse }
 
  
-    App\EventListener\CorsListener:
-        tags:
-            - { name: kernel.event_listener, event: kernel.response, method: onKernelResponse }
+    Sylius\Component\Order\Factory\OrderItemFactory: ~
 
+  
+
+    # Dans le listener OrderTotalUpdaterListener, j'ai une fonction nommée postFlush qui sauvegarde la mise à jour du panier.          
+    # App\EventListener\OrderTotalUpdaterListener:  
+    #     tags: 
+    #         - { name: doctrine.event_listener, event: onFlush }
+    #         - { name: doctrine.event_listener, event: postFlush }      
  
+    # App\Controller\OrderItemController:
+    #     autowire: true
+    #     autoconfigure: true
+    #     public: true
+
+
+
+  

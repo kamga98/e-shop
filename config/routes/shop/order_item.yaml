@@ -1,0 +1,11 @@
+# config/routes/shop/order_item.yaml
+# app_shop_order_item:
+#     resource: |
+#         alias: sylius.order_item
+#         section: shop
+#         templates: "@SyliusShop"
+#         only: ['add', 'remove']
+#         redirect: false
+#         controller: App\Controller\OrderItemController
+#     type: sylius.resource
+    

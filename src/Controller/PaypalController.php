@@ -39,6 +39,7 @@ use Sylius\Bundle\CoreBundle\Doctrine\ORM\OrderItemRepository as ORMOrderItemRep
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Doctrine\ORM\EntityManagerInterface;   
 use Symfony\Component\HttpFoundation\JsonResponse; 
+use Sylius\Component\Order\Processor\OrderProcessorInterface; 
 use App\Entity\Order\OrderItem;
 use Exception;
 
@@ -85,12 +86,20 @@ final class PaypalController extends AbstractController
  
     }
    
-        
+       
+    /* Pour savoir la structure de données utilisée par le panier juste avant la transmission
+    de ses données au projet Node.js, nous avons dû appeller la fonction getCart() via la
+    fonction dd() :  dd("Données du panier ...................", $this->getCart($cartContext));     
+    */ 
+      
     #[Route('{_locale}/checkout/address', name: 'sylius_shop_checkout_address', methods: ['GET', 'PUT'])]
     public function checkout(Request $request, CartContextInterface $cartContext): Response 
     {    
-          
-  
+                 
+             
+      //  dd("Données du panier ...................", $this->getCart($cartContext));     
+       
+         
         // En plus de faire le lien entre cette méthode et le fichier index.html qui affiche le bouton de paiement
         // on devra transmettre les infos de paiement au fichier index.js.  
         return new RedirectResponse('http://localhost:3001');
@@ -114,29 +123,8 @@ final class PaypalController extends AbstractController
     
         // Le client peut acheter des produits de nature différents (robes, jeans, etc.).
         // La variable cart de paypal.js contiendra chaque produit et sa quantité. 
-        // Nous devons trouver un moyen de transmettre à cette variable les bonnes données.
-          
-            
-        // $items = [];
-        // $total = 0.00;
-        // $currency = $cart->getCurrencyCode();
-
-        // foreach ($cart->getItems() as $item) {
-        //     $unitPrice = $item->getUnitPrice() / 100;
-        //     $quantity = $item->getQuantity();
-        //     $lineTotal = $unitPrice * $quantity;
-
-        //     $total += $lineTotal;
- 
-        //     $items[] = ItemBuilder::init(
-        //         $item->getProductName(),
-        //         MoneyBuilder::init($currency, number_format($unitPrice, 2, '.', ''))->build(),
-        //         (string) $quantity
-        //     )
-        //         ->description("Produit ajouté au panier")
-        //         ->sku($item->getVariant())
-        //         ->build();            
-        // }
+        // Nous devons trouver un moyen de transmettre à cette variable les bonnes données.      
+    
 
         // dd("array of items", $items); 
    
@@ -342,34 +330,54 @@ final class PaypalController extends AbstractController
     }         
   
 
+    /* Dans le projet paypal-checkout-main-2, on cette ligne  const response = await fetch('http://localhost:8000/api/cart');
+     qui permet d'appeller cette fonction et de récupérer les propriétés currency et total.    
+    */
     #[Route('/api/cart', name: 'api_cart', methods: ['GET'])]
-    public function getCart(CartContextInterface $cartContext): JsonResponse
+    public function getCartDatas(CartContextInterface $cartContext, OrderProcessorInterface $orderProcessor
+    ): JsonResponse  
     {
-        $cart = $cartContext->getCart();
-        $items = [];
-        $total = 0.0;
+    
+        $cart = $cartContext->getCart(); // objet Order (le panier)  
+        $currency = $cart->getCurrencyCode(); // récupère la devise
 
-        foreach ($cart->getItems() as $item) {
-            $unitPrice = $item->getUnitPrice() / 100; // converti les centimes en euros/dollars
-            $quantity = $item->getQuantity();
-            $lineTotal = $unitPrice * $quantity;
+      
+        // // Je dois aussi prendre en compte les frais de livraison dans le total final. 
+        // // Je le ferai plus tard.  
+        // $items = [];  
+        $total = 0.0;  
+   
+              
+        // foreach ($cart->getItems() as $item) {
+        //     $unitPrice = $item->getUnitPrice() / 100; // Prix unitaire en euros (ou dollars)
+        //     $quantity = $item->getQuantity();
+        //     $lineTotal = $unitPrice * $quantity;
 
-            $total += $lineTotal;
+        //     $total += $lineTotal;
 
-            $items[] = [
-                'name' => $item->getProductName(),
-                'unit_price' => number_format($unitPrice, 2, '.', ''),
-                'quantity' => $quantity,
-                'sku' => $item->getVariant(), // ou autre identifiant
-            ];  
-        }
+        //     $items[] = [
+        //         'name' => $item->getProductName(),
+        //         'unit_price' => number_format($unitPrice, 2, '.', ''), // formaté en chaîne avec 2 décimales
+        //         'quantity' => $quantity,
+        //         'sku' => $item->getVariant(), // ou $item->getVariant()->getCode() si tu veux un identifiant lisible
+        //     ];   
+        // }   
 
-        return new JsonResponse([
-            'currency' => $cart->getCurrencyCode(),
-            'total' => number_format($total, 2, '.', ''),
-            'items' => $items  
-        ]);
-    }
+
+        // Si tu préfères utiliser le total du panier fourni directement par Sylius :
+       // $total = number_format($cart->getItemsTotal() / 100, 2, '.', '');
+
+                     
+        // Dans le fichier index.js du projet Paypal on récupère exactement ces propriétés (currency, code).
+        // Les noms des deux propriétés sont exactements les mêmes donc on ne pourrait
+        // pas avoir une erreur liée au nommage des propriétés.
+        // Dans la console de Git sous "npm run start", on peut voir le résultat de console.log(data);
+        // qui affiche les données transmises par le "return" ci-dessous :       
+        return new JsonResponse([   
+            'currency' => $currency,
+            'total' => $total                 
+        ]);    
+    }   
 
 
     

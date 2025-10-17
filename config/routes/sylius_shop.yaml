@@ -50,7 +50,15 @@ sylius_shop_checkout_address:
     methods: [GET, PUT]  
     requirements:
         _locale: en_US|fr_FR
-
-    
+        
+            
          
-    
+# sylius_shop_ajax_cart_add_item:
+#     path: /{_locale}/ajax/cart/add/{productId}          
+#     methods: [POST]
+#     defaults:      
+#         _controller: App\Controller\AddToCartController::add
+#     requirements:
+#         _locale: ^[a-z]{2}(?:_[A-Z]{2})?$
+     
+         

@@ -4,6 +4,9 @@ sylius_theme:
             scan_depth: 1
             directories:
                 - "%kernel.project_dir%/themes"
+         
+    # legacy_mode: true  
+  
 
 when@test: &sylius_theme_test
     sylius_theme:

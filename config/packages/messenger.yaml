@@ -1,0 +1,10 @@
+framework:
+  messenger:
+    transports:
+      async: 'doctrine://default?queue_name=async'
+      # ou une autre dsn (AMQP, RabbitMQ, etc.)
+    routing:
+      App\Message\AddItemToCartCommand: async  
+  
+# Le transport définit où/avec quoi les messages sont traités (immédiatement, file, queue).    
+# Le routing dit quel message va dans quel transport.    
